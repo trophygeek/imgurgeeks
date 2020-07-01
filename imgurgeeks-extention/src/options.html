@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ImgurGeeks tools</title>
+
+  <link rel="stylesheet" type="text/css" href="bootstrap.css">
+
+  <style>
+    .ext-body {
+      font-family: Roboto, "Open Sans", serif;
+      padding: 23px;
+    }
+
+    .logo {
+      zoom: 0.75;
+      padding: 13px;
+    }
+    .header {
+      padding: 0.5rem;
+    }
+  </style>
+
+</head>
+<body class="ext-body">
+<div class="container">
+  <h4 class="header"><img src="/icons/icon128.png" class="logo" alt="logo">ImgurGeeks Options</h4>
+  <div class="card p-2 border-success">
+    <h5 class="card-header">About</h5>
+    <div class="card-body">
+      <p class="card-text">
+        This extension is a labor of love for Imgur.
+        A bunch of us power-users wanted
+        a "scoreboard" showing data about our posts and images views. This extension is the result.
+      </p>
+      <p class="card-text">Got a bug/suggestion? Please check out
+        <a href="https://groups.google.com/forum/#!forum/imgurgeeks-extension" target="_parent"> the forum.</a>
+      </p>
+    </div>
+  </div>
+<br>
+  <div class="card p-2 border-success">
+    <div class="input-group">
+      <div class="panel panel-primary">
+        <div class="panel-heading"><h6 class="panel-title">Misc experiments</h6></div>
+        <div class="panel-body card-text max-heigth">
+          <input type="checkbox" title="Show post-at-time button" id="show_defer_post_ui">
+          <label for="show_defer_post_ui">Show Deferred-Post Button on new post pages</label>
+          <p>Show an extra button on the old imgur post page to do queue up a post for a later time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="input-group-text">
+    <button id="reset_to_defaults" class="btn btn-success">Reset to defaults</button>
+    <span class="small card-subtitle" style="padding-left: 20px; text-align: left">Note: Settings are automatically saved<br>
+      If you're having issues or just want to clear all data, hold down the shift key while chosing Actions->Remove...
+      in the <b>main extension page</b>.
+    </span>
+  </div>
+</div>
+
+
+<script src="settings_data.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

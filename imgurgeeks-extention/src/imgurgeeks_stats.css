@@ -1,0 +1,136 @@
+/** https://bootswatch.com/darkly/ is the dark themed bootstrap source */
+
+html {
+    background-color: #121211;
+}
+
+.logo {
+    margin: 13px 31px 63px 31px;
+}
+
+.progress-bar-container {
+}
+
+.progress-bar-tweaks {
+    width: 32rem;
+    height: 32px;
+    border: solid 1px #ffab00;
+    background: gray;
+}
+
+.progress-indicator-tweaks {
+    width: 0%;
+    height: 100%;
+    background-color: #ffab00;
+    transition: all .5s linear;
+}
+
+.progress-text {
+}
+
+.imgurgeekscontainer {
+    padding: 50px;
+}
+
+.summary-container {
+}
+
+.details-container {
+}
+
+.card-top-100 {
+    width: auto;
+    padding-bottom: 40px;
+}
+
+.navbar-nav > li > button {
+    display: inline-block;
+    text-align: center;
+    margin: 0;
+}
+
+.dropdown {
+    display: initial;
+    width: fit-content;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+    margin: 0;
+}
+
+.dropdown-item-btn {
+    display: block;
+    width: 100%;
+    padding: 0.25rem 1.5rem;
+    clear: both;
+    font-weight: 400;
+    color: #fff;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+}
+
+.dropdown-item-btn:hover, .dropdown-item-btn:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+.dropdown-item-btn.active, .dropdown-item-btn:active {
+    color: #fff;
+    text-decoration: none;
+}
+
+.dropdown-item-btn.disabled, .dropdown-item-btn:disabled {
+    color: #888;
+    pointer-events: none;
+    background-color: transparent;
+}
+
+.message-container {
+    position: absolute;
+    width: 80%;
+}
+
+.top-50-img-thumbnail {
+    min-height:50px;
+    height:50px;
+}
+
+.top-50-tr {
+}
+
+.top-50-td {
+}
+
+.imgpreview {
+    -webkit-transition: all 0.1s ease-in-out;
+    -moz-transition: all 0.1s ease-in-out;
+    transition: all 0.1s ease-in-out;
+    cursor: zoom-in;
+}
+
+.imgpreview:hover,
+.imgpreview:active,
+.imgpreview:focus {
+    transform: scale(2.5);
+    position:relative;
+    z-index:100;
+}
+
+.btn-custom {
+    margin-left: 7px;
+    margin-right: 7px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+span.emojispan {
+    font-family: apple color emoji,segoe ui emoji,noto color emoji,android emoji,emojisymbols,emojione mozilla,twemoji mozilla,segoe ui symbol;
+    vertical-align: center;
+    font-size: 22px;
+    padding: 2px;
+}
