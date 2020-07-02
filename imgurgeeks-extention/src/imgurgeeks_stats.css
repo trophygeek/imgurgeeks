@@ -134,3 +134,8 @@ span.emojispan {
     font-size: 22px;
     padding: 2px;
 }
+
+span.summary-help {
+    float: right;
+    font-size: small;
+}

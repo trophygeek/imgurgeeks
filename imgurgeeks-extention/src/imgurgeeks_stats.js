@@ -34,26 +34,25 @@
  *
  *
  * TODO:
- *  - need to handle errors back from imgur better. (test offline, simulate 5xx errors?)
  *  - Tried to handle case where users switches profiles, need to test.
  *  - We *could* build a user vs user scoreboard of top 50 images (from public posts data). Might be fun
  *    as a server project. IronGif scoreboard.
  *
  *  Imgur: Tried to make this extension play nice with the servers.
- *         Would be great if these features were part of the Pro package
- *
- *         Contact me directly on the imgur discord server if you have any issues/concerns.
+ *         Contact me directly on the imgur discord server if you have any issues/concerns. Sarah knows
+ *         who I am.
  */
 
 
 try {   // scope and prevent errors from leaking out to page.
 
 // single point to turn on/off console. todo: tie into Settings to help users debug issues?
+  const TESTERS_GET_EXTRA_FEATURES = false;
+
   const ERR_BREAK_ENABLED = true;
   const TRACE_ENABLED = false;
-
   const TEST_LIMIT_DATA = false;    // used for testing full data logic without doing EVERYTHING.
-  const TESTERS_GET_EXTRA_FEATURES = true;
+
 
   /* eslint-disable: no-console no-undef no-octal-escape no-octal */
   const logerr = (...args) => {
@@ -151,7 +150,7 @@ Such is the cost of progress.
           Good luck!`,
 
     INTRO_TEXT_HTML:
-        `<h5>ImgurGeeks Extension Statistics (beta TEST)<br>(NOT associated with imgur.com)</h5>
+        `<h5>ImgurGeeks Extension Statistics (Beta)<br>(NOT associated with imgur.com)</h5>
           <p>
           This tool will gather information about your posts/images and display a summary of interesting data.
           </p>
@@ -171,7 +170,7 @@ Such is the cost of progress.
         `Your Top ${TOP100_DISPLAY_SIZE_DEFAULT} images (by views)`,
     TOP100_PRO_SUFFIX_HTML: `<br>
       + BONUS ${TOP100_DISPLAY_SIZE_PRO-TOP100_DISPLAY_SIZE_DEFAULT} for being Imgur Emerald
-      <img src="https://s.imgur.com/images/trophies/emerald.png" style="max-height: 1.5em">`,
+      <img src="https://s.imgur.com/images/trophies/emerald.png" style="max-height: 1.5em" alt="imgur pro icon">`,
 
     TOP100_LIST_NOTES_HTML:
         `Notes:
@@ -182,7 +181,14 @@ Such is the cost of progress.
           <li>Data is saved on your machine in the cache. It will be here when you come back. </li>
           <li>Images with fewer than ${MIN_VIEW_THRESHOLD} views are ignored to conserve on memory</li>
           <li>No data is uploaded.</li>
+          <li>Read more in the 
+          <a href="https://groups.google.com/forum/#!topic/imgurgeeks/W9G3QmUfC-Y" 
+            atl="read more about this feature on the forum" target="forum">forum</a></li>
           </ul>`,
+
+    SUMMARY_HELP_HTML: `<a href="https://groups.google.com/forum/#!topic/imgurgeeks/f9RvZvmscQc"
+        atl="read more about this feature on the forum" target="forum">forum</a></li>`,
+
     TOTAL_VIEWS_LABEL_HTML: `Total image views: `,
     POSTS_LABEL_HTML: `<br>Public stats from posts`,
     PAGE_TITLE: "ImgurGeeks extension - NOT ASSOCIATED WITH IMGUR",
@@ -206,6 +212,10 @@ Such is the cost of progress.
     BREATHER_PROGRESSBAR_HTML: 'Giving imgur a 10s breather. Continuing in a moment.',
     DONE_PROGRESSBAR_HTML: 'Done',
     ERROR_PROGRESSBAR_HTML: 'Imgur site returning <b>errors</b>',
+    DATA_RESET_HTML: `<p>WARNING</p>
+  <p>Your data had to be cleared because of a format change in the latest update.</p>
+   <p>This suck but we're is still beta, so...</p>
+   <p>Good news: this should not need to happen very often.</p>`,
   };
 
   const GREEN_ARROW_UP_SVG = `
@@ -280,7 +290,7 @@ Such is the cost of progress.
 
     // adding new consts? Go check removePostDataFromCacheByUser(), etc.
   };
-  const DATA_VERSION = 'v2.0';
+  const DATA_VERSION = 'v2.1';
 
   // used to cache values mostly. we scope it for clarity.
   // purist language nonsense, just allow a 'global' keyword scoped locally for sanity's sake.
@@ -1615,6 +1625,7 @@ Such is the cost of progress.
           <button class="btn btn-success btn-custom" data-username="${username}" data-cmd="refresh_post_summary">
             ${MESSAGES.REFRESH_BUTTON}
           </button>
+          <span class="summary-help">${MESSAGES.SUMMARY_HELP_HTML}</span>
         </div>
       </div>
       <br>
@@ -1896,7 +1907,7 @@ Such is the cost of progress.
 
                   case 'load_posts_bonus': {
                     // todo: refactor to remove dup code here.
-                    if (!TESTERS_GET_EXTRA_FEATURES || !GLOBALS.is_subscribed) {   // testers just get to do this.
+                    if (!(TESTERS_GET_EXTRA_FEATURES || GLOBALS.is_subscribed)) {   // testers just get to do this.
                         return;
                     }
                     const altusername = prompt(MESSAGES.ENTER_ALT_USERNAME_PROMPT);
@@ -2541,7 +2552,7 @@ Such is the cost of progress.
                   if (JSON.stringify(update_item) !== JSON.stringify(old_item)) {
                     trace(` Updating Post data for '${old_item['hash']}' ii=${ii} jj=${jj} for user ${this._username}`);
                     // remove that entry and insert the one.
-                    old_data.splice(ii, 1, update_item);
+                    old_data.splice(jj, 1, update_item);
                   } else {
                     trace(` Post data for 'hash' is unchanged`);
                   }
@@ -2869,11 +2880,12 @@ Such is the cost of progress.
       // this is a forwards compatibility thing. make sure we save the version if it's not saved.
       // NOTE: the username is static. We want it global across all data.
       const saved_data_version = await getSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION);
-      if (saved_data_version !== DATA_VERSION) {
+      if (saved_data_version !== '' && saved_data_version !== DATA_VERSION) {
         // ok, logic for if the data is deprecated.
-        // alert(MESSAGES.WARN_DATA_OLD_UPGRADE);
-        // await forceClearEverything();
+        await forceClearEverything();
+        // save off the new vers
         await putSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION, DATA_VERSION);
+        setTimeout(() =>setMessageHtml(MESSAGES.DATA_RESET_HTML), 2000);
       }
 
       await setUpPage();
