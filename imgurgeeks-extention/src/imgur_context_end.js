@@ -4,10 +4,9 @@ try {   // scope and prevent errors from leaking out to page.
   const TRACE_ENABLED = false;    // TODO: turn off before shipping
 
   // like trace, but should break into debugger.
-  function log(msg, ...args) {
+  function trace(msg, ...args) {
     if (TRACE_ENABLED) {
-      console.log('imgur-imgurgeeks-toos', ...args);
-      debugger;
+      console.log('imgurgeeks-tools', ...args);
     }
   }
 
@@ -63,7 +62,7 @@ try {   // scope and prevent errors from leaking out to page.
       }
       return true;
     } catch (err) {
-      log(err);
+      trace(err);
       await sleep(100);
     }
     return false;
@@ -77,22 +76,57 @@ try {   // scope and prevent errors from leaking out to page.
 
     PatchNewPostPage: async function () {
       try {
-        const parentdiv = document.querySelector('div.post-actions').parentElement;
-        if (!parentdiv) {
-          return;
+        let parentdiv = null;
+        let new_elem_html =  '';
+
+        const classic_elem = document.querySelector('div.post-actions'); // classic imgur
+        if (classic_elem !== null) {
+          parentdiv = classic_elem.parentElement;
+
+          new_elem_html = `
+          <a class="post-options-publish btn btn-action" id="imgurgeeks_posttimer">${this.BUTTON_TITLE}</a>
+          <br><br>
+          <div id="timer_running_msg" class="invisible">Timer is now running.
+          Make sure you have a title and all the tags you want. 
+          Leaving this page or refreshing will stop timer.</div>
+        `;
+        } else {
+          // try beta post page
+          parentdiv = document.querySelector('div.PostSubmit');
+          if (parentdiv === null) {
+            return;
+          }
+
+          new_elem_html = `
+          <div class="Buttons">
+          <button class="Button Button-community" id="imgurgeeks_posttimer" title="delay post" tabindex="26" style="margin-left: 0;width: 90%;">${this.BUTTON_TITLE}</button>
+          </div>
+          <div id="timer_running_msg" class="invisible">Timer is now running.
+          Make sure you have a title and all the tags you want. 
+          Leaving this page or refreshing will stop timer.</div>
+        `;
+
+          // we need to tie our button enable/disable to the beta page's button
+          const submitbutton = parentdiv.querySelector('button.Button-community');
+          new MutationObserver(function (event) {
+            const ourbutton = document.getElementById('imgurgeeks_posttimer');
+            if (submitbutton.classList.contains('isActive')) {
+              ourbutton.classList.add('isActive');
+            } else {
+              ourbutton.classList.remove('isActive');
+            }
+          }).observe(submitbutton, {
+            attributes: true,
+            attributeFilter: ['class'],
+            childList: false,
+            characterData: false
+          });
         }
 
         const divider = document.createElement('div');
-        divider.className = 'divider';
+        divider.className = 'custom-button-divider';
         parentdiv.append(divider);
 
-        const new_elem_html = `
-          <a class="post-options-publish btn btn-action" id="imgurgeeks_posttimer">${this.BUTTON_TITLE}</a>
-          <br><br>
-          <span id="timer_running_msg" class="invisible">Timer is now running.
-          Make sure you have a title and all the tags you want. 
-          Leaving this page or refreshing will stop timer.</span>
-        `;
         const newspan = document.createElement('span');
         newspan.innerHTML = new_elem_html;
         parentdiv.append(newspan);
@@ -155,7 +189,7 @@ try {   // scope and prevent errors from leaking out to page.
         // imgurutil_posttimer
         // post-options-publish btn btn-action
       } catch (err) {
-        log(err);
+        trace(err, err.stack);
       }
     },
 
@@ -173,8 +207,14 @@ try {   // scope and prevent errors from leaking out to page.
         window.clearInterval(NewPostPageFixer.posttimer);
         NewPostPageFixer.posttimer = null;
         await sleep(2 * 1000);
-        await ReallyClickTheElement(document.querySelector('a.post-options-publish.btn.btn-action'),
-            true);
+        // classic or beta ui?
+        const classic_btn = document.querySelector('a.post-options-publish.btn.btn-action');
+        if (classic_btn) {
+          await ReallyClickTheElement(classic_btn, true);
+        } else {
+          const beta_btn = document.querySelector('button.Button-community');
+          await ReallyClickTheElement(beta_btn, true);
+        }
         return;
       }
       NewPostPageFixer.secsUntilPost -= 1;
@@ -199,12 +239,14 @@ try {   // scope and prevent errors from leaking out to page.
         const submitpostbtn = document.querySelector('a.post-options-publish.btn.btn-action');
         const submitpostbtnNEWUI = document.querySelector('button.Button-community');
         if (submitpostbtn !== null || submitpostbtnNEWUI !== null) {
-          console.log('found submit button');
+          trace('found submit button');
           await NewPostPageFixer.PatchNewPostPage();
+        } else {
+          trace('did NOT find submit button');
         }
       }
     } catch (err) {
-      log(err, err.stack);
+      trace(err, err.stack);
     }
   }
 

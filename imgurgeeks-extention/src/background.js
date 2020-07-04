@@ -3,7 +3,7 @@
 
 // single point to turn on/off console
 const ERR_BREAD_ENABLED = true;
-const TRACE_ENABLED = false;
+const TRACE_ENABLED = true;
 
 /* eslint-disable: no-console no-undef no-octal-escape no-octal */
 const logerr = (...args) => {
@@ -60,19 +60,20 @@ chrome.tabs.onUpdated.addListener(async function (/*integer*/ tabId, /* object *
           break;
 
         case 'complete':
-          await monkeyInjectJs(tabId, 'imgurgeeks_stats', 'document_idle');
+          await injectJs(tabId, 'imgurgeeks_stats', 'document_idle');
           break;
       }
     } else if (tab.url.match(/imgur.com\/a\/\w+$/g)
         || tab.url.match(/imgur.com\/[0-9a-zA-Z]{6,}$/g)) {
       // these are the pages imgur uses to post new images. we're going to add UI to do a Delayed Post.
+      trace('change info', changeInfo);
       switch (changeInfo.status) {
         case 'loading':
           chrome.tabs.insertCSS(tabId, {file: 'src/imgur_context_end.css'});
           break;
 
         case 'complete':
-          await monkeyInjectJs(tabId, 'imgur_context_end', 'document_idle');
+          await injectJs(tabId, 'imgur_context_end', 'document_idle');
           break;
       }
     }
@@ -177,7 +178,7 @@ async function resetInjectTargetPage(tabId) {
  * @param scriptfilename {String}
  * @param runAt {string}  // "document_start", "document_end", or "document_idle"
  */
-async function monkeyInjectJs(tabId, scriptfilename, runAt = "document_idle") {
+async function injectJs(tabId, scriptfilename, runAt = "document_idle") {
   try {
     Settings['extensionId'] = chrome.runtime.id;
     const settings_json = JSON.stringify(Settings);

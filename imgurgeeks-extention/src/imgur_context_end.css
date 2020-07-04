@@ -1,44 +1,23 @@
 
-.all-left-panel {
-    width: auto !important;
+/*.all-left-panel {*/
+/*    width: auto !important;*/
+/*}*/
+
+.custom-button-divider {
+    margin: 15px 0 15px 0;
 }
 
-/* expanding comments is slow because of the automations, speed them up!*/
-.comment-reply-icon {
-    transition: all .01s !important;
-}
-
-#captions .newcomment-enter {
-    transition: opacity .01s !important;
-}
-
-#captions .expandcomment-appear {
-    transition: all .01s !important;
-}
-
-#captions .expandcomment-leave {
-    transition: all .01s !important;
-}
-
-.nano>.pane {
-    -webkit-transition: .01s;
-    -moz-transition: .01s;
-    -o-transition: .01s;
-    transition: .01s;
-}
-
-.comment {
-    transition: all .01s !important;
-}
-
-.fixed .post-title {
-    transition: max-height .01s !important;
+#timer_running_msg {
+    padding: 13px;
+    display: block;
 }
 
 .visible {
     visibility: visible !important;
+    display: flex;
 }
 
 .invisible {
     visibility: hidden !important;
+    display: none;
 }
