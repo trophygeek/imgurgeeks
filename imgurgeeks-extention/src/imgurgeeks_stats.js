@@ -47,7 +47,7 @@
 try {   // scope and prevent errors from leaking out to page.
 
 // single point to turn on/off console. todo: tie into Settings to help users debug issues?
-  const TESTERS_GET_EXTRA_FEATURES = false;
+  const TESTERS_GET_EXTRA_FEATURES = true;
 
   const ERR_BREAK_ENABLED = true;
   const TRACE_ENABLED = false;
@@ -657,7 +657,7 @@ Such is the cost of progress.
    * @param username {string}
    * @return {Promise<void>}
    */
-  async function backupPostsData(username) {
+  async function backupSummaryPostsData(username) {
     await copySavedStr(username, WEBCACHE_KEYS.SUMMARYPOSTS, WEBCACHE_KEYS.PRIORSUMMARYPOSTS);
   }
 
@@ -1896,7 +1896,7 @@ Such is the cost of progress.
                 switch (cmd) {
                   case 'load_posts': {
                     setUIState(UI_STATES.LOADING);
-                    await backupPostsData(username);
+                    await backupSummaryPostsData(username);
                     await backupImagesData(username);
                     await LoadPostDataClass.fetchDataFromImgurStatic(username);
                     await updatePostsUI(username, true);
@@ -1921,7 +1921,7 @@ Such is the cost of progress.
                       return; // bail if they cancelled
                     }
                     setUIState(UI_STATES.LOADING);
-                    await backupPostsData(username);
+                    await backupSummaryPostsData(username);
                     await backupImagesData(username);
                     await LoadPostDataClass.fetchDataFromImgurStatic(username);
                     await updatePostsUI(username, true);
@@ -1947,7 +1947,7 @@ Such is the cost of progress.
                   case 'refresh_post_summary': {
                     setUIState(UI_STATES.REFRESHING);
 
-                    await backupPostsData(username);
+                    await backupSummaryPostsData(username);
                     await backupImagesData(username);
 
                     const success = await LoadPostDataClass.fetchDataFromImgurStatic(username, 2, true);
@@ -1972,7 +1972,7 @@ Such is the cost of progress.
                     progressbar_elem.focus();
                     setUIState(UI_STATES.REFRESHING);
 
-                    await backupPostsData(username);
+                    await backupSummaryPostsData(username);
                     await backupImagesData(username);
 
                     await LoadImagesDataClass.fetchDataFromImgurStatic(username, 3, true);
@@ -2058,7 +2058,6 @@ Such is the cost of progress.
               }
             });
 
-
           } catch (err) {
             logerr(err, err.stack);
           }
@@ -2129,6 +2128,7 @@ Such is the cost of progress.
    * call like 'async ExportPostData.exportDataStatic(username)'
    */
   class ExportPostData extends _ExporterBase {
+
     /**
      * This function is STATIC. It does not need a new()
      * @param username
@@ -2153,9 +2153,18 @@ Such is the cost of progress.
         // we basically use the fist entry's **key names** as column names.
         const header = Object.keys(data_json[0]);
 
-        // We use tabs instead of commas to avoid having to escape them.
-        let cvsdata = data_json.map(row => header.map(fieldName => JSON.stringify(row[fieldName]).replace(/\\"/gi, '""')).join(`\t`));
-        cvsdata.unshift(header.join(`\t`));
+        // it's really confusing to not have the data sorted by date.
+        // convert the array of json objects to an array-of-array
+        // search for "in_most_viral"->"viral" in this code.
+        const array_of_arrays = data_json.map(el=>Object.values(el));
+        // warning Moving the date column to the 1st position
+        const descending = array_of_arrays.sort((a, b) =>
+            (new Date(a[9]) - new Date(b[9])) ? 1: -1);
+
+        // We use tabs instead of commas to avoid having to escape them
+        let cvsdata = descending.map(row => row.join(`\t`));
+        cvsdata.unshift(header.join(`\t`)); // prepend the header
+
         cvsdata = cvsdata.join(`\r\n`);
 
         return {filename, cvsdata};
@@ -2473,9 +2482,10 @@ Such is the cost of progress.
             // we do this to take pressure off the GC, this data has a ton of small objects in them
             // by converting to a string now, we allow that memory to be freed up. This is important
             // because we're saving all this data IN MEMORY as we loop over every album the user has.
-            const excaped_title = JSON.stringify(row.title);
+            // This order is also used in exporting.
+            const escaped_title = JSON.stringify(row.title);
             const timestamp = JSON.stringify(new Date(row.datetime * 1000).toLocaleString());
-            this._allreplies.push(`{"hash":"${row.id}","title":${excaped_title},"points":${row.points},` +
+            this._allreplies.push(`{"hash":"${row.id}","title":${escaped_title},"points":${row.points},` +
                 `"ups":${row.ups},"downs":${row.downs},"views":${row.views},"comment_count":${row.comment_count},` +
                 `"favorite_count":${row.favorite_count},"viral":${row.in_most_viral},"timestamp":${timestamp}}`);
 
@@ -2560,9 +2570,11 @@ Such is the cost of progress.
                   break;
                 }
               }
+
               // if the above loop found an entry, then we don't need to insert the new one.
               if (!found) {
-                old_data.push(update_item);
+                old_data.unshift(update_item); // prepend to start to preserve newest-first order
+                // old_data.push(update_item);
               }
             } catch (err) {
               logerr(err, err.stack);
