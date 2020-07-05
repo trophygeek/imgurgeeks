@@ -2,6 +2,7 @@
 
 html {
     background-color: #121211;
+    font-family: Roboto, "Open Sans", serif
 }
 
 .logo {
@@ -94,8 +95,8 @@ html {
 }
 
 .top-50-img-thumbnail {
-    min-height:50px;
-    height:50px;
+    min-height: 50px;
+    height: 50px;
 }
 
 .top-50-tr {
@@ -115,8 +116,8 @@ html {
 .imgpreview:active,
 .imgpreview:focus {
     transform: scale(2.5);
-    position:relative;
-    z-index:100;
+    position: relative;
+    z-index: 100;
 }
 
 .btn-custom {
@@ -129,7 +130,7 @@ html {
 }
 
 span.emojispan {
-    font-family: apple color emoji,segoe ui emoji,noto color emoji,android emoji,emojisymbols,emojione mozilla,twemoji mozilla,segoe ui symbol;
+    font-family: apple color emoji, segoe ui emoji, noto color emoji, android emoji, emojisymbols, emojione mozilla, twemoji mozilla, segoe ui symbol;
     vertical-align: center;
     font-size: 22px;
     padding: 2px;
@@ -138,4 +139,67 @@ span.emojispan {
 span.summary-help {
     float: right;
     font-size: small;
+}
+
+
+/**
+ * Tooltip Styles
+    based loosely on https://chrisbracco.com/a-simple-css-tooltip/
+ */
+
+[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* Hide the tooltip content by default */
+[data-tooltip]:before,
+[data-tooltip]:after {
+    position: absolute;
+    visibility: hidden;
+    filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=0);
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out,
+    visibility 0.1s ease-in-out,
+    transform 0.1s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+    transform: translate3d(0, 0, 0);
+    pointer-events: none;
+}
+
+/* Show the entire tooltip on hover and focus */
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after,
+[data-tooltip]:focus:before,
+[data-tooltip]:focus:after {
+    visibility: visible;
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+    opacity: 1;
+}
+
+/* Position tooltip above the element */
+[data-tooltip]:before {
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    margin-bottom: 3px;
+    margin-left: -80px;
+    padding: 5px;
+    width: 200px;
+    border-radius: 3px;
+    background-color: hsla(0, 0%, 80%, 0.5);
+    color: #fff;
+    content: attr(data-tooltip);
+    font-size: 14px;
+    font-family: Roboto, "Open Sans", serif;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Show tooltip content on hover */
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after {
+    visibility: visible;
+    filter: progid: DXImageTransform.Microsoft.Alpha(Opacity=100);
+    opacity: 1;
 }

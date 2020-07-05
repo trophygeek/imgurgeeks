@@ -47,7 +47,7 @@
 try {   // scope and prevent errors from leaking out to page.
 
 // single point to turn on/off console. todo: tie into Settings to help users debug issues?
-  const TESTERS_GET_EXTRA_FEATURES = false;
+  const TESTERS_GET_EXTRA_FEATURES = true;
 
   const ERR_BREAK_ENABLED = true;
   const TRACE_ENABLED = false;
@@ -169,7 +169,7 @@ Such is the cost of progress.
     TOP100_HEADER_HTML:
         `Your Top ${TOP100_DISPLAY_SIZE_DEFAULT} images (by views)`,
     TOP100_PRO_SUFFIX_HTML: `<br>
-      + BONUS ${TOP100_DISPLAY_SIZE_PRO-TOP100_DISPLAY_SIZE_DEFAULT} for being Imgur Emerald
+      + BONUS ${TOP100_DISPLAY_SIZE_PRO - TOP100_DISPLAY_SIZE_DEFAULT} for being Imgur Emerald
       <img src="https://s.imgur.com/images/trophies/emerald.png" style="max-height: 1.5em" alt="imgur pro icon">`,
 
     TOP100_LIST_NOTES_HTML:
@@ -216,38 +216,61 @@ Such is the cost of progress.
   <p>Your data had to be cleared because of a format change in the latest update.</p>
    <p>This suck but we're is still beta, so...</p>
    <p>Good news: this should not need to happen very often.</p>`,
+
+    // svg titles are hover text.
+    TOOLTIP_ARROW_UP: 'Position rose',
+    TOOLTIP_ARROW_DOWN: 'Position dropped',
+    TOOLTIP__NEW_TO_LIST: 'New to list',
+    TOOLTIP_COMMENTS_ONLY: 'Only found in comments',
+    TOOLTIP_POSITION: 'Ranking by most views',
+    TOOLTIP_HASH_LINK: 'See image on imgur',
   };
 
   const GREEN_ARROW_UP_SVG = `
-      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" >
+      <span class='position-icons' data-tooltip="${MESSAGES.TOOLTIP_ARROW_UP}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
       <g class="layer">
-        <title>Position rose</title>
-        <path clip-rule="evenodd" d="m7.197,2.524a1.2,1.2 0 0 1 1.606,0c0.521,0.46 1.302,1.182 2.363,2.243a29.617,29.617 
-        0 0 1 2.423,2.722c0.339,0.435 0.025,1.028 -0.526,1.028l-2.397,0l0,4.147c0,0.524 -0.306,0.982 
-        -0.823,1.064c-0.417,0.066 -1.014,0.122 -1.843,0.122s-1.427,-0.056 -1.843,-0.122c-0.517,-0.082 
-        -0.824,-0.54 -0.824,-1.064l0,-4.147l-2.396,0c-0.552,0 -0.865,-0.593 -0.527,-1.028c0.52,-0.669 
-        1.32,-1.62 2.423,-2.722a52.996,52.996 0 0 1 2.364,-2.243z" 
-        fill="#5fbf00" fill-rule="evenodd" id="svg_1" stroke="#ffffff" stroke-width="2"/>
-      </g>
-      </svg>`;
+      <title>${MESSAGES.TOOLTIP_ARROW_UP}</title>
+      <path d="m7.2 2.5a1.2 1.2 0 0 1 1.6 0c0.5 0.5 1.3 1.2 2.4 
+      2.2a29.6 29.6 0 0 1 2.4 2.7c0.3 0.4 0 1-0.5 1l-2.4 0 0 
+      4.1c0 0.5-0.3 1-0.8 1.1 -0.4 0.1-1 0.1-1.8 
+      0.1s-1.4-0.1-1.8-0.1c-0.5-0.1-0.8-0.5-0.8-1.1l0-4.1 -2.4 
+      0c-0.6 0-0.9-0.6-0.5-1 0.5-0.7 1.3-1.6 2.4-2.7a53 
+      53 0 0 1 2.4-2.2z" style="fill:#5fbf00;stroke-width:2;stroke:#fff"/></g></svg>
+      </span>`;
 
   const RED_ARROW_DOWN_SVG = `
-      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg"  >
+      <span class='position-icons' data-tooltip="${MESSAGES.TOOLTIP_ARROW_DOWN}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
       <g class="layer">
-      <title>Position dropped</title>
-      <path clip-rule="evenodd" d="m8.803,13.476a1.2,1.2 0 0 1 -1.606,0a53.03,53.03
-      0 0 1 -2.364,-2.243a29.613,29.613 0 0 1 -2.422,-2.722c-0.339,-0.435 -0.025,-1.028 
-      0.526,-1.028l2.397,0l0,-4.147c0,-0.524 0.306,-0.982 0.823,-1.064a11.874,11.874 
-      0 0 1 1.843,-0.122c0.829,0 1.427,0.056 1.843,0.122c0.517,0.082 0.824,0.54 
-      0.824,1.064l0,4.147l2.396,0c0.552,0 0.865,0.593 0.527,1.028c-0.52,0.669 
-      -1.32,1.62 -2.423,2.722a53.038,53.038 0 0 1 -2.364,2.243z" fill="#bc0000" 
-      fill-rule="evenodd" id="svg_1" stroke="#ffffff" stroke-width="2"/>
-      </g>
-      </svg>
+      <title>${MESSAGES.TOOLTIP_ARROW_DOWN}</title>
+      <path d="m8.8 13.5a1.2 1.2 0 0 1-1.6 0 53 53 0 0 1-2.4-2.2 29.6 
+      29.6 0 0 1-2.4-2.7c-0.3-0.4 0-1 0.5-1l2.4 0 0-4.1c0-0.5 0.3-1 
+      0.8-1.1a11.9 11.9 0 0 1 1.8-0.1c0.8 0 1.4 0.1 1.8 0.1 0.5 0.1 0.8 
+      0.5 0.8 1.1l0 4.1 2.4 0c0.6 0 0.9 0.6 0.5 1 -0.5 0.7-1.3 1.6-2.4 
+      2.7a53 53 0 0 1-2.4 2.2z" style="fill:#bc0000;stroke-width:2;stroke:#fff"/></g></svg>
+      </span>
   `;
 
   const NEW_SVG = `
-      <span role="img" aria-label="new" class="emojispan" > 🆕 </span>
+  <span class='position-icons' data-tooltip="${MESSAGES.TOOLTIP__NEW_TO_LIST}">
+  <span role="img" aria-label="new" class="emojispan" title="${MESSAGES.TOOLTIP__NEW_TO_LIST}"> 🆕 </span>
+  </span>
+`;
+
+  const COMMENT_SVG = `
+    <span class='position-icons' data-tooltip="${MESSAGES.TOOLTIP_COMMENTS_ONLY}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+    <g class="layer" transform="matrix(0.95 0 0 0.95 2.5 1.8)">
+    <title>${MESSAGES.TOOLTIP_COMMENTS_ONLY}</title>
+    <path d="m5.8 1c3.9 0 7.1 2.2 7.1 4.9 0 2.7-3.2 4.9-7.1 4.9 -1.2 
+    0-2.4-0.2-3.4-0.6 -2 0.7-4.7 2.2-4.7 2.2 0 0 1.8-1 2.5-2.2 0.2-0.3 0.3-0.6 0.4-1 
+    -1.2-0.9-1.9-2-1.9-3.3 0-2.7 3.2-4.9 7.1-4.9m0 0.4c-3.7 0-6.7 2-6.7 
+    4.5 0 1.1 0.6 2.2 1.7 3l0.2 0.1 0 0.2c-0.1 0.4-0.2 0.8-0.4 1.1 
+    -0.1 0.1-0.1 0.2-0.2 0.3 0.6-0.3 1.3-0.6 1.9-0.8l0.1-0.1 0.1 
+    0.1c1 0.4 2.1 0.6 3.2 0.6 3.7 0 6.7-2 6.7-4.5 
+    0-2.5-3-4.5-6.7-4.5l0 0 0 0 0 0z" style="fill:#FFF;stroke:#999"/></g></svg>
+    </span>
 `;
   // </editor-fold>
 
@@ -288,7 +311,8 @@ Such is the cost of progress.
     PRIORSUMMARYPOSTS: 'PRIORSUMMARYPOSTS',
     // PRIORSUMMARYPOSTSLASTMOD: 'PRIORSUMMARYPOSTSLASTMOD', date is saved in the summary
 
-    // adding new consts? Go check removePostDataFromCacheByUser(), etc.
+    POSTEDIMAGES: 'POSTEDIMAGES', // it's fun to easily identify the inverse of this... comment-only images
+    // adding new consts? Go check removeImageDataFromCacheByUser(), etc.
   };
   const DATA_VERSION = 'v2.1';
 
@@ -467,7 +491,7 @@ Such is the cost of progress.
    * @param reviver_func {function}
    * @return {Promise<boolean|*>}
    */
-  async function imgurFetch(url='', referrer='', reviver_func) {
+  async function imgurFetch(url = '', referrer = '', reviver_func) {
     try {
       const response = await fetch(url, {'referrer': referrer, ...FETCH_OPTIONS}).catch((err) => {
         setMessageHtml(MESSAGES.IMGUR_FETCH_ERROR_MESSAGE_HTML);
@@ -494,11 +518,12 @@ Such is the cost of progress.
       }
 
       return response_json;
-    } catch(err) {
-      logerr(err,err.stack);
+    } catch (err) {
+      logerr(err, err.stack);
       return false;
     }
   }
+
   /**** Save/Get/Delete/Copy to webcache. We require the current username to handle users switching accounts ****/
 
   // <editor-fold defaultstate="collapsed" desc="-- WebCache ops  --">
@@ -604,7 +629,7 @@ Such is the cost of progress.
     // todo: we could only enable features for pro users.
     // "is_subscribed": false,
     // "is_founders_club": false
-    GLOBALS.is_subscribed =  data.data.is_subscribed === true;
+    GLOBALS.is_subscribed = data.data.is_subscribed === true;
 
     // await localStorage.setItem('imgurgeeks_primary_username', username);
 
@@ -1412,6 +1437,85 @@ Such is the cost of progress.
   }
 
   /**
+   * This tracks/checks if an image hash is in a post. It's fun to see
+   * which images are NOT in posts (e.g. comments only)
+   */
+  class ImgsInPosts extends ImgurGeeksBaseClass {
+    _hashliststr = '';  // string of ',' delimited hashes
+
+    constructor() {
+      super();
+    }
+
+    /**
+     * NOTICE this async. All the other calls on this class do not require it to make
+     * code using this class more readable.
+     *
+     * @return {Promise<void>}
+     */
+    async init(username) {
+      try {
+        await super.init(username);
+        if (!this._isusernameprimary) {
+          return; // we can ONLY see non-comment images for other users, so don't bother tracking
+        }
+        // just save as a string not an array. easier on GC to just use a single string.
+        this._hashliststr = await getSavedStr(this._username, WEBCACHE_KEYS.POSTEDIMAGES);
+      } catch (err) {
+        logerr(err, err.stack);
+        alert(MESSAGES.ERROR_OUT_OF_MEMORY);
+      }
+    }
+
+    hasHash(hash) {
+      if (this._hashliststr.length === 0) {
+        // we don't have data, so don't display icon
+        return true;
+      }
+      return (this._hashliststr.indexOf(`,${hash},`) >= 0);
+    }
+
+    addHash(hash) {
+      if (!this._isusernameprimary) {
+        return; // we can ONLY see non-comment images for other users, so don't bother tracking
+      }
+
+      if (this._hashliststr.indexOf(`,${hash},`) >= 0) {  // don't use hasHash()
+        return;
+      }
+
+      // not already in list, add it.
+      this._hashliststr += hash;
+      // always bound with deliminators so search for <delim>hash<delim> works
+      if (!this._hashliststr.endsWith(',')) {
+        this._hashliststr += ',';
+      }
+      if (!this._hashliststr.startsWith(',')) {
+        this._hashliststr = ',' + this._hashliststr;
+      }
+    }
+
+    async save() {
+      try {
+        await super.save();
+
+        if (!this._isusernameprimary) {
+          return; // we can ONLY see non-comment images for other users, so don't bother tracking
+        }
+
+        // used for UI
+        if (GLOBALS.cancel_load === false) {
+          await putSavedStr(this._username, WEBCACHE_KEYS.POSTEDIMAGES, this._hashliststr);
+        } else {
+          trace('not saving data because cancel');
+        }
+      } catch (err) {
+        console.log(err, err.stack);
+      }
+    }
+  }
+
+  /**
    * Set the visual state of the UI, shows/hides/enable/disables html elements.
    * Not as nice as a reactive library, but much lighter weight.
    *
@@ -1522,19 +1626,19 @@ Such is the cost of progress.
   }
 
   /**
-   * TODO: this is a very basic layout.
+   * TODO: this is a very basic layout, maybe move to a table layout?
    * @param summarydata {}
    * @return {Promise<void>}
    */
   async function displaySummaryData(summarydata) {
     try {
-      // todo: move these into messages localization
+      // todo: move these into messages localization, support tooltips
       const DISPLAYFIELDUIMAP = {
         // fieldname, displayname
         'date': 'Date gathered',
         // these are aggregates
         'totalcount': 'Total Posts',
-        'viral': 'Most Viral',
+        'viral': 'Viral',
         'views': 'Views',
         'points': 'Points',
         'favorite_count': 'Favorites',
@@ -1574,7 +1678,7 @@ Such is the cost of progress.
 
               if (delta_str !== '' && delta_str !== '0') {
                 // prepend + if not already neg
-                delta_str =  (!delta_str.startsWith('-')) ? `+${delta_str}` : delta_str;
+                delta_str = (!delta_str.startsWith('-')) ? `+${delta_str}` : delta_str;
                 displayresult.push(`<b>${displayname}:</b> ${value} (${delta_str})`);
                 continue;
               }
@@ -1649,8 +1753,11 @@ Such is the cost of progress.
       const top100 = new Top100TrackerClass();
       await top100.init(username);
 
-      const imgExtMap = new ImgExtMappingClass();
-      await imgExtMap.init(username);
+      const img_ext_map = new ImgExtMappingClass();
+      await img_ext_map.init(username);
+
+      const img_in_post = new ImgsInPosts();
+      await img_in_post.init(username);
 
       const rows = [];
 
@@ -1676,7 +1783,7 @@ Such is the cost of progress.
         /** @type ['',''] **/
         const [hash, views] = Object.entries(elem)[0];
 
-        let ext = imgExtMap.hash_to_ext(hash);
+        let ext = img_ext_map.hash_to_ext(hash);
 
         // we could map the '.mp4' to '.gifv'
         if (ext === 'mp4') {
@@ -1701,15 +1808,20 @@ Such is the cost of progress.
             }
           }
         }
+        // now add and icon if the image ONLY appears in comments.
+        if (!img_in_post.hasHash(hash)) {
+          ///
+          position_change = `${COMMENT_SVG} ${position_change}`;
+        }
 
         // noinspection HtmlDeprecatedAttribute - I know tables are "old" shutup
         rows.push(`
       <tr class="top-50-tr">
-        <th class="top-50-td" align="right" scope="row">${rows.length + 1}</th>
+        <th class="top-50-td" align="right" scope="row"><span data-tooltip="${MESSAGES.TOOLTIP_POSITION}">${rows.length + 1}</span></th>
         <td class="top-50-td" align="center"><img src="https://i.imgur.com/${hash}.${ext}" class="rounded top-50-img-thumbnail imgpreview" alt="thumbnail"></td>
         <td class="top-50-td" align="right">${views_str}</td>
         <td class="top-50-td"></td>
-        <td class="top-50-td"><a href="https://imgur.com/${hash}" target="_imgurview" data-toggle="tooltip" title="See image on imgur">${hash}</a></td>
+        <td class="top-50-td"><a href="https://imgur.com/${hash}" target="_imgurview" data-tooltip="${MESSAGES.TOOLTIP_HASH_LINK}">${hash}</a></td>
         <td class="top-50-td">${position_change}</td>
       </tr>
 `);
@@ -1738,7 +1850,6 @@ Such is the cost of progress.
               <table class="table table-hover table-secondary">
               <tbody>
               ${tablecontents}
-              
               <tr>
               <td align="right" colspan="2">
               <b>${MESSAGES.TOTAL_VIEWS_LABEL_HTML}</b> 
@@ -1898,7 +2009,7 @@ Such is the cost of progress.
                     setUIState(UI_STATES.LOADING);
                     await backupSummaryPostsData(username);
                     await backupImagesData(username);
-                    await LoadPostDataClass.fetchDataFromImgurStatic(username);
+                    await FetchPostDataClass.fetchDataFromImgurStatic(username);
                     await updatePostsUI(username, true);
                     await displayImgViewDetails();
                     setUIState(UI_STATES.HAS_DATA_IDLE);
@@ -1908,12 +2019,12 @@ Such is the cost of progress.
                   case 'load_posts_bonus': {
                     // todo: refactor to remove dup code here.
                     if (!(TESTERS_GET_EXTRA_FEATURES || GLOBALS.is_subscribed)) {   // testers just get to do this.
-                        return;
+                      return;
                     }
                     const altusername = prompt(MESSAGES.ENTER_ALT_USERNAME_PROMPT);
                     if (altusername && altusername !== '') {
                       // simple sanitize.
-                      username = altusername.replace(/[^A-Za-z0-9]/g,"");
+                      username = altusername.replace(/[^A-Za-z0-9]/g, "");
                       if (username === '') {
                         return;
                       }
@@ -1923,7 +2034,7 @@ Such is the cost of progress.
                     setUIState(UI_STATES.LOADING);
                     await backupSummaryPostsData(username);
                     await backupImagesData(username);
-                    await LoadPostDataClass.fetchDataFromImgurStatic(username);
+                    await FetchPostDataClass.fetchDataFromImgurStatic(username);
                     await updatePostsUI(username, true);
                     await displayImgViewDetails();
                     setUIState(UI_STATES.HAS_DATA_IDLE);
@@ -1933,7 +2044,7 @@ Such is the cost of progress.
                   case 'load_all_images': {
                     setUIState(UI_STATES.LOADING);
                     await backupImagesData(username);
-                    await LoadImagesDataClass.fetchDataFromImgurStatic(username);
+                    await FetchImagesDataClass.fetchDataFromImgurStatic(username);
                     await displayImgViewDetails();
                     setUIState(UI_STATES.HAS_DATA_IDLE);
                   }
@@ -1950,13 +2061,13 @@ Such is the cost of progress.
                     await backupSummaryPostsData(username);
                     await backupImagesData(username);
 
-                    const success = await LoadPostDataClass.fetchDataFromImgurStatic(username, 2, true);
-                    if (GLOBALS.cancel_load || success===false) {
+                    const success = await FetchPostDataClass.fetchDataFromImgurStatic(username, 2, true);
+                    if (GLOBALS.cancel_load || success === false) {
                       setprogressbar(1.0, MESSAGES.CANCELLED_PROGRESSBAR_HTML);
                     } else {
                       setprogressbar(0.5, MESSAGES.PROCESSING_PROGRESSBAR_HTML);
                       // for a refresh, we want to recheck the TopN images and a couple of pages of news
-                      await LoadImagesDataClass.fetchDataFromImgurStatic(username, 2, true);
+                      await FetchImagesDataClass.fetchDataFromImgurStatic(username, 2, true);
                       setprogressbar(1.0, MESSAGES.DONE_PROGRESSBAR_HTML);
                     }
                     await sleep(1000);
@@ -1975,7 +2086,7 @@ Such is the cost of progress.
                     await backupSummaryPostsData(username);
                     await backupImagesData(username);
 
-                    await LoadImagesDataClass.fetchDataFromImgurStatic(username, 3, true);
+                    await FetchImagesDataClass.fetchDataFromImgurStatic(username, 3, true);
 
                     setprogressbar(1.0, MESSAGES.DONE_PROGRESSBAR_HTML);
                     await sleep(1000);
@@ -2156,10 +2267,10 @@ Such is the cost of progress.
         // it's really confusing to not have the data sorted by date.
         // convert the array of json objects to an array-of-array
         // search for "in_most_viral"->"viral" in this code.
-        const array_of_arrays = data_json.map(el=>Object.values(el));
+        const array_of_arrays = data_json.map(el => Object.values(el));
         // warning Moving the date column to the 1st position
         const descending = array_of_arrays.sort((a, b) =>
-            (new Date(a[9]) - new Date(b[9])) ? 1: -1);
+            (new Date(a[9]) - new Date(b[9])) ? 1 : -1);
 
         // We use tabs instead of commas to avoid having to escape them
         let cvsdata = descending.map(row => row.join(`\t`));
@@ -2226,7 +2337,18 @@ Such is the cost of progress.
    *
    * @abstract
    */
-  class _AbstractLoadUserDataFromImgur extends ImgurGeeksBaseClass {
+  class _AbstractFetchUserDataFromImgur extends ImgurGeeksBaseClass {
+    _maxpostpages = 0;
+    _merge = false;
+    _running_count = 0;
+    _total_count = 0;
+    _isusernameprimary = false;
+    /** @type Top100TrackerClass **/
+    _top100 = null;
+    /** @type ImgExtMappingClass **/
+    _img_ext_map = null;
+    /** @type ImgViewsClass **/
+    _img_views = null;
 
     /**
      * main logic for fetching, subclasses must override the _xxxx() functions above.
@@ -2322,18 +2444,6 @@ Such is the cost of progress.
       }
     }
 
-    _maxpostpages = 0;
-    _merge = false;
-    _running_count = 0;
-    _total_count = 0;
-    _isusernameprimary = false;
-    /** @type Top100TrackerClass **/
-    _top100 = null;
-    /** @type ImgExtMappingClass **/
-    _img_ext_map = null;
-    /** @type ImgViewsClass **/
-    _img_views = null;
-
     constructor(maxpostpages = MAX_POST_PAGES_PER_LOOP, merge = false) {
       super();
       this._maxpostpages = maxpostpages;
@@ -2395,12 +2505,14 @@ Such is the cost of progress.
       await this._img_ext_map.save();
       await this._img_views.save();
       await this._top100.save();
+      await this._imginpost.save();
     }
 
   }
 
-  class LoadPostDataClass extends _AbstractLoadUserDataFromImgur {
+  class FetchPostDataClass extends _AbstractFetchUserDataFromImgur {
     _allreplies = [];
+    _imginpost = new ImgsInPosts();
 
     constructor(maxpostpages = MAX_POST_PAGES_PER_LOOP, merge = false) {
       super(maxpostpages, merge);
@@ -2413,6 +2525,7 @@ Such is the cost of progress.
      */
     async _init(username = '') {
       await super._init(username);
+      await this._imginpost.init(username);
     }
 
     static _json_reviver_posts(key, value) {
@@ -2437,7 +2550,6 @@ Such is the cost of progress.
       return undefined;
     }
 
-
     /**
      * posts
      * @return {Promise<void>}
@@ -2459,6 +2571,7 @@ Such is the cost of progress.
                 this._top100.addHash(hash, row.views);
                 this._img_views.addHash(hash, row.views);
                 this._img_ext_map.addHash(hash, ext);
+                this._imginpost.addHash(hash);
               } else {
                 for (const image of row.images) {
                   const hash = image.id;
@@ -2468,6 +2581,7 @@ Such is the cost of progress.
                   this._top100.addHash(hash, image.views);
                   this._img_views.addHash(hash, image.views);
                   this._img_ext_map.addHash(hash, ext);
+                  this._imginpost.addHash(hash);
                 }
               }
             }
@@ -2511,7 +2625,7 @@ Such is the cost of progress.
         const url = `https://api.imgur.com/3/account/${this._username}/submissions/${ii}/newest?album_previews=1&client_id=546c25a59c58ad7`;
         const referrer = `https://imgur.com/user/${this._username}/posts`;
 
-        const response_json = await imgurFetch(url, referrer, LoadPostDataClass._json_reviver_posts);
+        const response_json = await imgurFetch(url, referrer, FetchPostDataClass._json_reviver_posts);
         if (response_json === false || response_json.data.length === 0) {
           return false;
         }
@@ -2542,6 +2656,8 @@ Such is the cost of progress.
         }
 
         await super._saveData();
+        await this._imginpost.save();
+
         let finaljson_str;
         if (this._merge) {
           // O(N^2) operation. But only used for smaller refresh so should be reasonable.
@@ -2596,7 +2712,7 @@ Such is the cost of progress.
     }
   }
 
-  class LoadImagesDataClass extends _AbstractLoadUserDataFromImgur {
+  class FetchImagesDataClass extends _AbstractFetchUserDataFromImgur {
     /** variables */
         // we have to do two queries to get all the information.
         // First fetch gets meta query, extracts image hash ids puts them in a queue
@@ -2716,7 +2832,7 @@ Such is the cost of progress.
           const url = `https://${this._username}.imgur.com/ajax/images?sort=0&order=1&album=0&page=${ii}&perPage=${IMAGES_PER_PAGE_FETCH}`;
           const referrer = `https://imgur.com/user/${this._username}/posts`;
 
-          const response_json = await imgurFetch(url, referrer, LoadImagesDataClass._json_reviver_meta_images);
+          const response_json = await imgurFetch(url, referrer, FetchImagesDataClass._json_reviver_meta_images);
           if (response_json === false || response_json.data.length === 0) {
             return false;
           }
@@ -2738,7 +2854,7 @@ Such is the cost of progress.
           const url = `https://${this._username}.imgur.com/ajax/views?images=${hash_list_str}`;
           const referrer = `https://imgur.com/user/${this._username}/posts`;
 
-          const response_json = await imgurFetch(url, referrer, LoadImagesDataClass._json_reviver_stats_images);
+          const response_json = await imgurFetch(url, referrer, FetchImagesDataClass._json_reviver_stats_images);
           if (response_json === false || response_json.data.length === 0) {
             return false;
           }
@@ -2846,7 +2962,8 @@ Such is the cost of progress.
    */
   async function removeImageDataFromCacheByUser(username) {
     try {
-      // remove data from webcache (could do as loop but more obvious which keys are included this way
+      // remove data from webcache (could do as loop but more obvious which keys are included this way)
+      // this is JUST Top100 data, leave the summary data
       await deleteSavedData(username, WEBCACHE_KEYS.TOPVIEWS);
       await deleteSavedData(username, WEBCACHE_KEYS.IMGVIEWS);
       await deleteSavedData(username, WEBCACHE_KEYS.HASHTYPEBIN);
@@ -2897,7 +3014,7 @@ Such is the cost of progress.
         await forceClearEverything();
         // save off the new vers
         await putSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION, DATA_VERSION);
-        setTimeout(() =>setMessageHtml(MESSAGES.DATA_RESET_HTML), 2000);
+        setTimeout(() => setMessageHtml(MESSAGES.DATA_RESET_HTML), 2000);
       }
 
       await setUpPage();
