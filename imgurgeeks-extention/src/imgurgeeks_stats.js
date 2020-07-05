@@ -47,7 +47,7 @@
 try {   // scope and prevent errors from leaking out to page.
 
 // single point to turn on/off console. todo: tie into Settings to help users debug issues?
-  const TESTERS_GET_EXTRA_FEATURES = true;
+  const TESTERS_GET_EXTRA_FEATURES = false;
 
   const ERR_BREAK_ENABLED = true;
   const TRACE_ENABLED = false;

@@ -94,6 +94,7 @@ try {   // scope and prevent errors from leaking out to page.
           // try beta post page
           parentdiv = document.querySelector('div.PostSubmit');
           if (parentdiv === null) {
+            trace(`didn't fund sumbit buttons`);
             return;
           }
 
@@ -229,6 +230,8 @@ try {   // scope and prevent errors from leaking out to page.
     },
   };
 
+  let retry = false;
+
   async function main() {
     try {
       let url = window.location.toString();
@@ -241,8 +244,10 @@ try {   // scope and prevent errors from leaking out to page.
         if (submitpostbtn !== null || submitpostbtnNEWUI !== null) {
           trace('found submit button');
           await NewPostPageFixer.PatchNewPostPage();
-        } else {
+        } else if (retry === false) {
+          retry = true;
           trace('did NOT find submit button');
+          window.setTimeout(main, 1000);
         }
       }
     } catch (err) {
