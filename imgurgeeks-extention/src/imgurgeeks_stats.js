@@ -47,7 +47,7 @@
 try {   // scope and prevent errors from leaking out to page.
 
 // single point to turn on/off console. todo: tie into Settings to help users debug issues?
-  const TESTERS_GET_EXTRA_FEATURES = true;
+  const TESTERS_GET_EXTRA_FEATURES = false;
 
   const ERR_BREAK_ENABLED = true;
   const TRACE_ENABLED = false;
@@ -330,15 +330,15 @@ Such is the cost of progress.
   };
 
   // this is kind of silly, but simplifies error checking, it's default value for a json parse for
-  // fetch()ed data. In case the server returns blank data.
-  const DEFAULT_REPONSE_SAFE = {
+  // fetch()ed data. In case the server returns blank data. It mimics what imgur sends.
+  const DEFAULT_RESPONSE_SAFE = {
     data: {},
     success: false,
     status: -1,
   };
 
   // there are a few fetch() calls sprinkled around. want them all to use the same settings.
-  // we use the ...spread-operator to mix in the referrer. Not sure about trusting the cache.
+  // we use the ...spread-operator to mix in the referrer. Not sure about the cache setting
   const FETCH_OPTIONS = {
     'mode': 'cors',
     'credentials': 'include',
@@ -368,7 +368,7 @@ Such is the cost of progress.
   }
 
   /**
-   *
+   * Opposite of bigIntToString, so the ',' (or . for some languages) between numbers must be removed.
    * @param bigint_str {string}
    * @return {BigInt}
    */
@@ -408,7 +408,7 @@ Such is the cost of progress.
     mins ? parts.push(`${mins}m`) : '';
     secs ? parts.push(`${secs}s`) : '';
 
-    // if we have days, we don't need to show seconds.
+    // if we have days, we don't need to show seconds-level resolution
     days ? parts.pop() : '';
     return parts.join(' ');
   }
@@ -428,6 +428,10 @@ Such is the cost of progress.
   }
 
   /**
+   * We want a human readable timestamp, but we have to avoid special characters
+   * that filesystems don't like (e.g. : / @).
+   * The output of this looks like '2020-07-05_08.26.56'
+   * Bonus it also alpha sorts by correctly.
    * @param datestring {string}
    * @return {string}
    */
@@ -451,7 +455,6 @@ Such is the cost of progress.
 
   /**
    * async/await friendly sleep()
-   *
    * @param ms Number
    * @return {Promise<void>}
    */
@@ -470,7 +473,7 @@ Such is the cost of progress.
    */
   function jsonParseSafe(jsonstr = '', default_val, reviver_fn = null) {
     try {
-      if (jsonstr === '') {
+      if (typeof(jsonstr) === 'undefined'  || jsonstr.trim() === '') {
         return default_val;
       }
       if (reviver_fn) {
@@ -505,7 +508,7 @@ Such is the cost of progress.
       }
 
       const jsontext = await response.text();   // we want to filter json with a reviver, so don't use .json()
-      const response_json = jsonParseSafe(jsontext, DEFAULT_REPONSE_SAFE, reviver_func);
+      const response_json = jsonParseSafe(jsontext, DEFAULT_RESPONSE_SAFE, reviver_func);
 
       if (response_json.data.length === 0 || GLOBALS.cancel_load) {
         return false;
@@ -524,9 +527,8 @@ Such is the cost of progress.
     }
   }
 
-  /**** Save/Get/Delete/Copy to webcache. We require the current username to handle users switching accounts ****/
-
   // <editor-fold defaultstate="collapsed" desc="-- WebCache ops  --">
+  /**** Save/Get/Delete/Copy to webcache. We require the current username to handle users switching accounts ****/
   /**
    * @param username {string}
    * @param key {string}
@@ -596,7 +598,10 @@ Such is the cost of progress.
   // </editor-fold>
 
   /**
-   * May be SUPER slow if we have to fetch it from imgur becasue of redirect to images page.
+   * Trying to reliably parse out the username from a page html is simply NOT reliable.
+   * There is no official api that returns the imgur username?!? seems like an oversight.
+   * So, we're using a call that will likely change on us.
+   * TODO: ask imgur to include a GET api call to return the "me" username.
    * @return {Promise<string|*>}
    */
   async function getUsername() {
@@ -604,14 +609,6 @@ Such is the cost of progress.
     if (GLOBALS.savedusername_cached !== '') {
       return GLOBALS.savedusername_cached;
     }
-
-    // check localStorage
-    // Removing. Users switching profiles need to NOT cache this
-    // const localstore_username = await localStorage.getItem('imgurgeeks_primary_username') || '';
-    // if (localstore_username !== '') {
-    //   GLOBALS.savedusername_cached = localstore_username;
-    //   return GLOBALS.savedusername_cached;
-    // }
 
     // get the username
     const url = 'https://api.imgur.com/3/account/me?client_id=546c25a59c58ad7';
@@ -626,10 +623,9 @@ Such is the cost of progress.
       return '';
     }
 
-    // todo: we could only enable features for pro users.
     // "is_subscribed": false,
     // "is_founders_club": false
-    GLOBALS.is_subscribed = data.data.is_subscribed === true;
+    GLOBALS.is_subscribed = (data.data.is_subscribed === true) || TESTERS_GET_EXTRA_FEATURES;
 
     // await localStorage.setItem('imgurgeeks_primary_username', username);
 
@@ -672,10 +668,11 @@ Such is the cost of progress.
   }
 
   /**
-   * Backups are used to display changes to data in the UI (e.g. 100 more views)
+   * Backups are used to display changes to data in the UI
+   * (e.g. Top100 views position changes)
    * The backup function is broken out and not part of saving because fetching *can*
    * be two parts so it's tough for lower level code to know when it should NOT backup to avoid
-   * double writes.
+   * double overwrites.
    * TODO: One issue with this approach is user cancelling will overwrite data. Probably better to have
    *        a two-part commit phase (keep copy in temp location, then commit when done)
    *
@@ -841,8 +838,8 @@ Such is the cost of progress.
   }
 
   /**
-   * Generic routine to walk all rows and sum() any numeric fields it finds. Bools' trues are converted to counts.
-   * aggregate.
+   * Generic routine to walk all rows and sum() any numeric fields it finds.
+   * Booleans are converted to counts of how many trues are seen.
    * NOTE: the aggregates values have the potential to be REALLY big, so we're using BigInts.
    *
    * @param json_object {[]}
@@ -855,7 +852,7 @@ Such is the cost of progress.
 
       for (let row of Object.values(json_object)) {
         for (let [key, value] of Object.entries(row)) {
-          // support bools but converting to 0/1 then doing a count
+          // support bools by converting to 0/1 then doing a count
           if (typeof value === 'boolean') {
             value = value ? 1 : 0;
           }
@@ -873,7 +870,7 @@ Such is the cost of progress.
       summarydata['totalcount'] = totalcount;
 
       // now, because each value is a BigInt it will choke JSON.stringify(), so convert
-      // them all to strings    value = new Intl.NumberFormat().format(value)
+      // them all to strings    using new Intl.NumberFormat().format(value)
       const summarydata_converted = {};
       for (let [key, value] of Object.entries(summarydata)) {
         summarydata_converted[key] = bigIntToString(value);
@@ -896,7 +893,7 @@ Such is the cost of progress.
    */
   async function getSummaryData(username = '', force_refresh = false) {
     try {
-      // try to load it from the webcache if we're not refreshing
+      // try to load it from the webcache if we're not forcing a refresh
       if (force_refresh === false) {
         const saved_session = await getSavedStr(username, WEBCACHE_KEYS.SUMMARYPOSTS);
         if (saved_session.length > 0) {
@@ -943,7 +940,7 @@ Such is the cost of progress.
   }
 
   /**
-   * All classes here have a few basic things they are redoing. Moved here.
+   * All classes here have a few basic things they are doing. Move to base class for code reduction
    * @abstract
    */
   class ImgurGeeksBaseClass {
@@ -955,6 +952,7 @@ Such is the cost of progress.
     }
 
     /**
+     * notice async calls
      * @param username {string}
      * @return {Promise<void>}
      */
@@ -977,7 +975,7 @@ Such is the cost of progress.
 
   /****
    * ImgExtMappingClass
-   * The code below works and is fully debugged and is beautiful, but ultimately not required. We can tell dirty
+   * The OLD code below works and is fully debugged and is beautiful, but ultimately not required. We can tell dirty
    * lies to the browser and say every image is .gif and it will data sniff the image and realize what it actually is.
    * As a programmer, you KNOW how hard it is to delete something clever that works, so I'm just going to stub it
    * out and keep the old code around. Maybe some future feature will require the image suffix extension? Maybe
@@ -2690,7 +2688,6 @@ Such is the cost of progress.
               // if the above loop found an entry, then we don't need to insert the new one.
               if (!found) {
                 old_data.unshift(update_item); // prepend to start to preserve newest-first order
-                // old_data.push(update_item);
               }
             } catch (err) {
               logerr(err, err.stack);
@@ -2973,12 +2970,10 @@ Such is the cost of progress.
     }
   }
 
-
-  // absolute reset.
-  // it would make more sense (UI wise) to do from the Options panel, but it doesn't have context access
-  // to delete things from the cache.
   /**
-   *
+   * absolute reset
+   * it would make more sense (UI wise) to do from the Options panel, but it doesn't have context access
+   * to delete things from the cache.
    * @return {Promise<void>}
    */
   async function forceClearEverything() {
@@ -2992,29 +2987,31 @@ Such is the cost of progress.
     }
   }
 
-
   /**
    * Main function is used to set up async/await and allow us to "return" if there's an error.
    * @return {Promise<void>}
    */
   async function main() {
     try {
-      // we try to play nice. imgur HEAVLY using localStorage and there's a limited about of that,
-      // so we use the webcache
+      // we try to play nice. imgur HEAVLY uses their localStorage and there's a limited about of that,
+      // so we use the webcache which has no real limit
       //  see navigator.storage.estimate below... so. much. space.
       GLOBALS.webcache = await caches.open(WEBCACHE_KEYS.STORAGE_ROOT);
 
       const username = await getUsername();
 
       // this is a forwards compatibility thing. make sure we save the version if it's not saved.
-      // NOTE: the username is static. We want it global across all data.
+      // NOTE: the username param needs to never change. We want it global across all data.
       const saved_data_version = await getSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION);
       if (saved_data_version !== '' && saved_data_version !== DATA_VERSION) {
         // ok, logic for if the data is deprecated.
         await forceClearEverything();
-        // save off the new vers
+        // save off the new version
         await putSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION, DATA_VERSION);
         setTimeout(() => setMessageHtml(MESSAGES.DATA_RESET_HTML), 2000);
+      } else if (saved_data_version === '') {
+        // simply missing. probably a new install.
+        await putSavedStr(WEBCACHE_KEYS.DATAVERSION, WEBCACHE_KEYS.DATAVERSION, DATA_VERSION);
       }
 
       await setUpPage();
@@ -3039,7 +3036,6 @@ Such is the cost of progress.
 
         await displaySummaryData(aggregatedata);
       }
-
 
       if (username === '') {
         // we could provide a direct link to imgur's login, but it seems safer to NOT do so.
@@ -3075,4 +3071,3 @@ Such is the cost of progress.
   console.log('imgurgeeks extension error', err, err.stack);
   debugger;
 }
-// this code only seems long because of comments.

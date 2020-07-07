@@ -258,6 +258,6 @@ try {   // scope and prevent errors from leaking out to page.
   window.setTimeout(main, 1);
 
 } catch (err) {
-  console.log(err);
+  console.log(err, err.stack);
   debugger;
 }
