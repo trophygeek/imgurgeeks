@@ -198,7 +198,7 @@ Such is the cost of progress.
 
     RELOAD_DATA_POSTS_BUTTON: 'Full load data again...',
     REFRESH_BUTTON: 'Quick refresh',
-    EXPORT_BUTTON: 'Export data to csv',
+    EXPORT_BUTTON: 'Export data',
     SLOW_FETCH_BUTTON: 'Get data for ALL images (slow)...',
     REMOVE_BUTTON: 'Remove...',
     ACTION_BUTTON: 'Actions',
@@ -2218,7 +2218,7 @@ Such is the cost of progress.
         }
 
         // standard save as behavior.
-        const blob = new Blob([cvsdata], {type: 'text/csv;charset=utf-8,\uFEFF'});
+        const blob = new Blob([cvsdata], {type: 'text/tsv;charset=utf-8,\uFEFF'});
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
@@ -2256,7 +2256,7 @@ Such is the cost of progress.
 
         // include the date/time it was captured in the default filename.
         const filename_datestr = getDateTimeAsFilenameStr(date);
-        const filename = `${username}-POSTS-${filename_datestr}.csv`;
+        const filename = `${username}-POSTS-${filename_datestr}.tsv`;
 
         // column names will be the first row exported.
         // we basically use the fist entry's **key names** as column names.
@@ -2302,7 +2302,7 @@ Such is the cost of progress.
 
         const datestr = await getSavedStr(username, WEBCACHE_KEYS.LASTMODIMAGES);
         const filename_datestr = getDateTimeAsFilenameStr(datestr);
-        const filename = `${username}-IMAGES-${filename_datestr}.csv`;
+        const filename = `${username}-IMAGES-${filename_datestr}.tsv`;
 
         // the simple json format is VERY close to what we want, we're not going to parse and recombine, we're
         // just going to replace delimiters in place.
@@ -2979,8 +2979,8 @@ Such is the cost of progress.
   async function forceClearEverything() {
     try {
       await removeAllDataFromCacheByUser(''); // delete everything.
-      await localStorage.removeItem('imgurgeeks_primary_username');
-      await localStorage.removeItem('imgurgeeks_save_settings');
+      // await localStorage.removeItem('imgurgeeks_primary_username');
+      // await localStorage.removeItem('imgurgeeks_save_settings');
 
     } catch (err) {
       logerr(err, err.stack);
