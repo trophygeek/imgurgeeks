@@ -183,11 +183,11 @@ Such is the cost of progress.
           <li>No data is uploaded.</li>
           <li>Read more in the 
           <a href="https://groups.google.com/forum/#!topic/imgurgeeks/W9G3QmUfC-Y" 
-            atl="read more about this feature on the forum" target="forum">forum</a></li>
+            title="read more about this feature on the forum" target="forum">forum</a></li>
           </ul>`,
 
     SUMMARY_HELP_HTML: `<a href="https://groups.google.com/forum/#!topic/imgurgeeks/f9RvZvmscQc"
-        atl="read more about this feature on the forum" target="forum">forum</a></li>`,
+        title="read more about this feature on the forum" target="forum">forum</a></li>`,
 
     TOTAL_VIEWS_LABEL_HTML: `Total image views: `,
     POSTS_LABEL_HTML: `<br>Public stats from posts`,
@@ -596,6 +596,32 @@ Such is the cost of progress.
   }
 
   // </editor-fold>
+  /**
+   * Does the smallest/fastest query possible to just see if a username is valid.
+   * Apparently this returns the number of comments the user's made.
+   * @param username {string}
+   * @return {Promise<boolean>}
+   */
+  async function checkUsernameExists(username) {
+    try {
+      const url = `https://api.imgur.com/3/account/${username}/comments/count?client_id=546c25a59c58ad7`;
+      const referrer = 'https://imgur.com/';
+      const response = await fetch(url, {'referrer': referrer, ...FETCH_OPTIONS}).catch((err) => {
+        return false;
+      });
+      if (!response.ok) {
+        return false;
+      }
+      const data = jsonParseSafe(await response.text());
+      if (data.status === null || parseInt(data.status) !== 200 || data.success !== true) {
+        return false;
+      }
+      return true;
+    } catch(err) {
+      logerr(err,err.stack);
+      return false;
+    }
+  }
 
   /**
    * Trying to reliably parse out the username from a page html is simply NOT reliable.
@@ -612,13 +638,16 @@ Such is the cost of progress.
 
     // get the username
     const url = 'https://api.imgur.com/3/account/me?client_id=546c25a59c58ad7';
-    const referrer = 'https://imgur.com/upload?beta';
+    const referrer = 'https://imgur.com/upload';
 
     const response = await fetch(url, {'referrer': referrer, ...FETCH_OPTIONS}).catch((err) => {
       logerr(err);
     });
-    const data = await response.json();
-    if (parseInt(data.status) !== 200 && data.success !== 'true') {
+    if (!response.ok) {
+      return false;
+    }
+    const data = jsonParseSafe(await response.text());
+    if (parseInt(data.status) !== 200 || data.success !== true) {
       logerr('getting username failed ', response);
       return '';
     }
@@ -962,7 +991,7 @@ Such is the cost of progress.
           return;
         }
         this._username = (username !== '') ? username : await getUsername();
-        this._isusernameprimary = (await getUsername() === this._username);
+        this._isusernameprimary = ((this._username !== '') && (await getUsername() === this._username));
         this._inited = true;
       } catch (err) {
         logerr(err, err.stack);
@@ -1625,7 +1654,7 @@ Such is the cost of progress.
 
   /**
    * TODO: this is a very basic layout, maybe move to a table layout?
-   * @param summarydata {}
+   * @param summarydata {Object}
    * @return {Promise<void>}
    */
   async function displaySummaryData(summarydata) {
@@ -1921,55 +1950,55 @@ Such is the cost of progress.
       if (document.getElementById('imgurgeekscontainer') === null) {
         // if this element exists, then we've already injected successfully.
         const HTML = `
-<div class="container imgurgeekscontainer jumbotron bg-dark" id="imgurgeekscontainer">
-  <div id="messagecontainer" class="message-container invisible">
-    <div class="alert alert-dismissible alert-warning">
-      <button type="button" class="close" data-cmd="close_alert" id="close_alert">&times;</button>
-      <h4 class="alert-heading">
-        <img src="https://i.imgur.com/XORy3fO.png" class="float-left rounded logo" style="zoom:0.5" alt="logo">
-        ${MESSAGES.WARNING_MESSAGE_TITLE_HTML}
-      </h4>
-      <p class="mb-0" id="message"></p>
+  <div class="container imgurgeekscontainer jumbotron bg-dark" id="imgurgeekscontainer">
+    <div id="messagecontainer" class="message-container invisible">
+      <div class="alert alert-dismissible alert-warning">
+        <button type="button" class="close" data-cmd="close_alert" id="close_alert">&times;</button>
+        <h4 class="alert-heading">
+          <img src="https://i.imgur.com/XORy3fO.png" class="float-left rounded logo" style="zoom:0.5" alt="logo">
+          ${MESSAGES.WARNING_MESSAGE_TITLE_HTML}
+        </h4>
+        <p class="mb-0" id="message"></p>
+      </div>
     </div>
-  </div>
-
-  <div class="clearfix intro-text">
-    <img src="https://i.imgur.com/XORy3fO.png" class="float-left mr-4 rounded logo"
-         alt="logo">
-    ${MESSAGES.INTRO_TEXT_HTML}
-  </div>
-  <br>
-
-  <div class="progress-bar-container invisible" id="progressbarcontainer">
-    <div class="progress-bar progress-bar-tweaks progress-bar-striped" role="progressbar">
-      <div id="progressindicator" class="progress-indicator-tweaks"></div>
+  
+    <div class="clearfix intro-text">
+      <img src="https://i.imgur.com/XORy3fO.png" class="float-left mr-4 rounded logo"
+           alt="logo">
+      ${MESSAGES.INTRO_TEXT_HTML}
     </div>
-    <div><span id="progresstext" class="progress-text"></span></div>
-  </div>
-  <br>
-  <div class="main-buttons" id="mainpostbuttons">
-    <button id="gather_post_stats_btn" class="btn btn-success" data-username="" data-cmd="load_posts" 
-      title="${MESSAGES.LOAD_DATA_POSTS_BUTTON_HELP}">
-      ${MESSAGES.LOAD_DATA_POSTS_BUTTON}
-    </button>
+    <br>
+  
+    <div class="progress-bar-container invisible" id="progressbarcontainer">
+      <div class="progress-bar progress-bar-tweaks progress-bar-striped" role="progressbar">
+        <div id="progressindicator" class="progress-indicator-tweaks"></div>
+      </div>
+      <div><span id="progresstext" class="progress-text"></span></div>
+    </div>
+    <br>
+    <div class="main-buttons" id="mainpostbuttons">
+      <button id="gather_post_stats_btn" class="btn btn-success" data-username="" data-cmd="load_posts" 
+        title="${MESSAGES.LOAD_DATA_POSTS_BUTTON_HELP}">
+        ${MESSAGES.LOAD_DATA_POSTS_BUTTON}
+      </button>
+      
+      <button id="add_user_bonus_btn" class="btn btn-success invisible" data-username="" data-cmd="load_posts_bonus"
+        title="${MESSAGES.LOAD_PUBLIC_POST_OTHER_USER_BUTTON_HELP}">
+        <img src="https://s.imgur.com/images/trophies/emerald.png" style="max-height: 1.5em" alt="logo"> ${MESSAGES.LOAD_PUBLIC_POST_OTHER_USER_BUTTON}
+      </button>
+      
+      <button id="cancel_btn" class="btn btn-success invisible" data-username="" data-cmd="cancel_load">cancel
+      </button>
+      <br><br>
+    </div>
+  
+    <div id="summary_container" class="summary-constainer"></div>
     
-    <button id="add_user_bonus_btn" class="btn btn-success invisible" data-username="" data-cmd="load_posts_bonus"
-      title="${MESSAGES.LOAD_PUBLIC_POST_OTHER_USER_BUTTON_HELP}">
-      <img src="https://s.imgur.com/images/trophies/emerald.png" style="max-height: 1.5em" alt="logo"> ${MESSAGES.LOAD_PUBLIC_POST_OTHER_USER_BUTTON}
-    </button>
+    <div id="details_container" class="details-container"></div>
     
-    <button id="cancel_btn" class="btn btn-success invisible" data-username="" data-cmd="cancel_load">cancel
-    </button>
-    <br><br>
+    <div id="pro_imgur_container" class="pro-imgur-container"></div>
+    
   </div>
-
-  <div id="summary_container" class="summary-constainer"></div>
-  
-  <div id="details_container" class="details-container"></div>
-  
-  <div id="pro_imgur_container" class="pro-imgur-container"></div>
-  
-</div>
 `;
 
         // disable existing stylesheets so as to not conflict with the new ones.
@@ -2028,6 +2057,12 @@ Such is the cost of progress.
                       }
                     } else {
                       return; // bail if they cancelled
+                    }
+                    const founduser = await checkUsernameExists(username);
+                    if (!founduser) {
+                      alert(`Username '${username}' was not found on imgur or returned a network error. 
+                      Double check the spelling and try again`);
+                      return;
                     }
                     setUIState(UI_STATES.LOADING);
                     await backupSummaryPostsData(username);
@@ -2336,17 +2371,15 @@ Such is the cost of progress.
    * @abstract
    */
   class _AbstractFetchUserDataFromImgur extends ImgurGeeksBaseClass {
-    _maxpostpages = 0;
+    _maxpostpages = 0; // used for progress bar
+    _currentpostpage = 0;  // used for progress bar
+    _running_count = 0; // used for progress bar
+    _total_count = 0; // used for progress bar
     _merge = false;
-    _running_count = 0;
-    _total_count = 0;
     _isusernameprimary = false;
-    /** @type Top100TrackerClass **/
-    _top100 = null;
-    /** @type ImgExtMappingClass **/
-    _img_ext_map = null;
-    /** @type ImgViewsClass **/
-    _img_views = null;
+    _top100 = new Top100TrackerClass();
+    _img_ext_map = new ImgExtMappingClass();
+    _img_views = new ImgViewsClass();
 
     /**
      * main logic for fetching, subclasses must override the _xxxx() functions above.
@@ -2409,14 +2442,6 @@ Such is the cost of progress.
               break;
             }
 
-            if (instance._total_count > 0) {
-              // TODO: localization needs template support.
-              setprogressbar((instance._running_count / instance._total_count),
-                  `Loading (${instance._running_count} of ${instance._total_count})...`);
-            } else {
-              setprogressbar((ii / maxpostpages), `Loading (${instance._running_count})...`);
-            }
-
             // if we fetch too fast, imgur will probably get upset. play nice and delay
             await sleep(sleep_delay);
           }
@@ -2463,10 +2488,6 @@ Such is the cost of progress.
 
         this._isusernameprimary = (await getUsername() === username);
 
-        this._top100 = new Top100TrackerClass();
-        this._img_ext_map = new ImgExtMappingClass();
-        this._img_views = new ImgViewsClass();
-
         // username may NOT be active user.
         // we about to load everything into memory. This is gonna suck.
         await this._top100.init(username);
@@ -2486,6 +2507,8 @@ Such is the cost of progress.
      * @protected
      */
     async _fetchStep(ii) {
+      this._currentpostpage = ii;
+      this._updateProgress();
       return false;
     }
 
@@ -2503,9 +2526,20 @@ Such is the cost of progress.
       await this._img_ext_map.save();
       await this._img_views.save();
       await this._top100.save();
-      await this._imginpost.save();
+      if (this._imginpost) {
+        await this._imginpost.save();
+      }
     }
 
+    _updateProgress() {
+      if (this._total_count > 0) {
+        // TODO: localization needs template support.
+        setprogressbar((this._running_count / this._total_count),
+            `Loading (${this._running_count} of ${this._total_count})...`);
+      } else {
+        setprogressbar((this._currentpostpage / this._maxpostpages), `Loading (${this._running_count})...`);
+      }
+    }
   }
 
   class FetchPostDataClass extends _AbstractFetchUserDataFromImgur {
@@ -2557,6 +2591,7 @@ Such is the cost of progress.
       try {
         // walk through and grab all the images
         for (const row of response_json) {
+          this._running_count++;
           try {
             // look at the images on the FP posts and use for updating/creating the Top100
             if (this._isusernameprimary) {
@@ -2604,7 +2639,6 @@ Such is the cost of progress.
           } catch (err) {
             logerr(err, err.stack);
           }
-          this._running_count++;
         }
       } catch (err) {
         logerr(err, err.stack);
@@ -2619,6 +2653,8 @@ Such is the cost of progress.
      */
     async _fetchStep(ii) {
       try {
+        await super._fetchStep(ii);
+
         // const url = `https://imgur.com/user/${this._username}/submitted/page/${ii}/miss.json?scrolling`;
         const url = `https://api.imgur.com/3/account/${this._username}/submissions/${ii}/newest?album_previews=1&client_id=546c25a59c58ad7`;
         const referrer = `https://imgur.com/user/${this._username}/posts`;
@@ -2823,9 +2859,12 @@ Such is the cost of progress.
      */
     async _fetchStep(ii) {
       try {
+        await super._fetchStep(ii);
+
         // two fetches, the first loads a page of image meta data, but the views field is always empty.
         // the second will load view data.
         {
+          this._running_count++;
           const url = `https://${this._username}.imgur.com/ajax/images?sort=0&order=1&album=0&page=${ii}&perPage=${IMAGES_PER_PAGE_FETCH}`;
           const referrer = `https://imgur.com/user/${this._username}/posts`;
 
@@ -2844,9 +2883,12 @@ Such is the cost of progress.
         // we don't send too many in a batch, so we loop over all items in the queue
         // sending 60x at a time. (This is the default page size imgur uses).
         while ((this._hash_queue.length > 0) && (GLOBALS.cancel_load === false)) {
+          this._running_count+=IMAGES_PER_PAGE_FETCH;
+          this._updateProgress();
+
           // pull 60 off front
-          const hash_list_str = this._hash_queue.slice(0, 60).join(',');
-          this._hash_queue = this._hash_queue.slice(60);
+          const hash_list_str = this._hash_queue.slice(0, IMAGES_PER_PAGE_FETCH).join(',');
+          this._hash_queue = this._hash_queue.slice(IMAGES_PER_PAGE_FETCH);
 
           const url = `https://${this._username}.imgur.com/ajax/views?images=${hash_list_str}`;
           const referrer = `https://imgur.com/user/${this._username}/posts`;
@@ -2875,7 +2917,7 @@ Such is the cost of progress.
         // json response includes a total count of all images on the account? Neat?
         const total_images_on_account = response_json.count || 0;
         if (this._merge === false) {
-          this._total_count = Math.max(this._total_count, total_images_on_account);
+          this._total_count = total_images_on_account;
         } else {
           this._total_count = (REFRESH_PAGES * IMAGES_PER_PAGE_FETCH) + (TOP_N_SAVE_SIZE);
         }
@@ -2903,8 +2945,7 @@ Such is the cost of progress.
     async _process_image_stats_step2_response_json(response_json) {
       try {
         await this._top100.addHashes(response_json);
-        const num_processed = await this._img_views.addHashes(response_json);
-        this._running_count += num_processed;
+        await this._img_views.addHashes(response_json);
       } catch (err) {
         logerr(err, err.stack);
       }
