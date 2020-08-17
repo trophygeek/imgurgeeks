@@ -10,6 +10,8 @@ try {   // scope and prevent errors from leaking out to page.
     }
   }
 
+  const nowTicks = () => new Date().getTime();
+
   /**
    * async/await friendly sleep()
    *
@@ -71,7 +73,7 @@ try {   // scope and prevent errors from leaking out to page.
 
   let NewPostPageFixer = {
     posttimer: null,
-    secsUntilPost: 0,
+    endTicks: 0,
     BUTTON_TITLE: 'ImgurGeeks Post Delay...',
 
     PatchNewPostPage: async function () {
@@ -172,11 +174,12 @@ try {   // scope and prevent errors from leaking out to page.
                   return;
                 }
 
-                NewPostPageFixer.secsUntilPost = ((parseInt(hrs) * 60) + parseInt(mins)) * 60;
-                if (NewPostPageFixer.secsUntilPost === 0) {
+                const secsUntilPost = ((parseInt(hrs) * 60) + parseInt(mins)) * 60;
+                if (secsUntilPost === 0) {
                   alert(`Time '${time} must be greater than > 0 minutes`);
                   return;
                 }
+                NewPostPageFixer.endTicks = nowTicks() + (secsUntilPost * 1000);
                 await NewPostPageFixer.PostTimerCountdown();
                 NewPostPageFixer.posttimer = window.setInterval(NewPostPageFixer.PostTimerCountdown, 1000);
                 document.getElementById('timer_running_msg').classList.remove('invisible');
@@ -202,7 +205,10 @@ try {   // scope and prevent errors from leaking out to page.
     },
 
     PostTimerCountdown: async function () {
-      if (NewPostPageFixer.secsUntilPost === 0) {
+      // can't trust that a setTimer won't wonder over time, need to use an end time calc
+      const secsUntilPost = Math.round((NewPostPageFixer.endTicks - nowTicks())/1000);
+
+      if (secsUntilPost === 0) {
         // time to trigger!
         await NewPostPageFixer.SetDelayPostButton(' -- POSTING ---');
         window.clearInterval(NewPostPageFixer.posttimer);
@@ -218,10 +224,10 @@ try {   // scope and prevent errors from leaking out to page.
         }
         return;
       }
-      NewPostPageFixer.secsUntilPost -= 1;
-      const hrs = Math.floor(NewPostPageFixer.secsUntilPost / (60 * 60));
-      const mins = Math.floor(NewPostPageFixer.secsUntilPost / 60 % (60));
-      const secs = NewPostPageFixer.secsUntilPost % (60);
+
+      const hrs = Math.floor(secsUntilPost / (60 * 60));
+      const mins = Math.floor(secsUntilPost / 60 % (60));
+      const secs = secsUntilPost % (60);
 
       const mins_pad = (mins < 10) ? ('0' + mins.toString()) : mins.toString();
       const secs_pad = (secs < 10) ? ('0' + secs.toString()) : secs.toString();
@@ -238,7 +244,7 @@ try {   // scope and prevent errors from leaking out to page.
 
       if (url.match(/imgur.com\/a\/\w+$/g)
           || url.match(/imgur.com\/[0-9a-zA-Z]{6,}$/g)) {
-        console.log('checking if new post');  // post-options-publish btn btn-action
+        console.log('check if new post');  // post-options-publish btn btn-action
         const submitpostbtn = document.querySelector('a.post-options-publish.btn.btn-action');
         const submitpostbtnNEWUI = document.querySelector('button.Button-community');
         if (submitpostbtn !== null || submitpostbtnNEWUI !== null) {
