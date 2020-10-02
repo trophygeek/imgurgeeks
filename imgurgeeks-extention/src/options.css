@@ -1,0 +1,13 @@
+.ext-body {
+    font-family: Roboto, "Open Sans", serif;
+    padding: 23px;
+}
+
+.logo {
+    zoom: 0.75;
+    padding: 13px;
+}
+.header {
+    padding: 0.5rem;
+}
+.my-card-note { padding-left: 20px; text-align: left; }

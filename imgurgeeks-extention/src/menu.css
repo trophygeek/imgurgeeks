@@ -1,0 +1,8 @@
+body {width:270px;}
+button {cursor: pointer; width: 160px}
+table {padding: 13px; border: 13px;}
+.btn-custom {margin-left: 7px;}
+.img-custom {float: left; zoom: 0.5;}
+.title {font-weight: bolder; border-bottom: 10px;}
+table {border-collapse: separate;}
+.bottom-padding-title {padding-bottom: 13px;}

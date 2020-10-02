@@ -2,12 +2,12 @@
 
 
 // single point to turn on/off console
-const ERR_BREAD_ENABLED = true;
-const TRACE_ENABLED = true;
+const ERR_BREAK_ENABLED = true;
+const TRACE_ENABLED = false;
 
 /* eslint-disable: no-console no-undef no-octal-escape no-octal */
 const logerr = (...args) => {
-  if (ERR_BREAD_ENABLED) {
+  if (ERR_BREAK_ENABLED) {
     // red color
     console.log('%c imgurgeeks-tool ', 'color: white; font-weight: bold; background-color: red', ...args);
     debugger;
