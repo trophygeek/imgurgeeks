@@ -384,23 +384,27 @@ Such is the cost of progress.
 
   /**
    * Not going to pull in all of Moments just to do this.
-   * @param newDate {Date}
    * @param oldDate {Date}
+   * @param newDate {Date}
    * @return {string}
    */
-  function dateDiffDisplay(newDate, oldDate) {
+  function dateDiffDisplay(oldDate, newDate = new Date()) {
+    const SEC_PER_DAY = 86400;
+    const SEC_PER_HOUR = 3600;
+    const SEC_PER_MIN = 60;
+
     const msecDiff = (newDate - oldDate);    // (new Date('1/2/2020') - new Date('1/1/2020')) => 86400000
-    let secdiff = msecDiff / 1000;
+    let secdiff = Math.round(msecDiff / 1000);
 
-    const days = Math.floor(secdiff / (60 * 60 * 24));
-    secdiff -= (days * (60 * 60 * 24));
+    const days = Math.floor(secdiff / SEC_PER_DAY);
+    secdiff -= (days * SEC_PER_DAY);
 
-    const hrs = Math.floor(secdiff / (60 * 60));
-    secdiff -= (days * (60 * 60));
+    const hrs = Math.floor(secdiff / (SEC_PER_HOUR));
+    secdiff -= (hrs * SEC_PER_HOUR);
 
-    const mins = Math.floor((secdiff / 60) % 60);
-    secdiff -= (days * (60 * 60));
-    const secs = secdiff % 60;
+    const mins = Math.floor((secdiff / SEC_PER_MIN) % 60);
+    secdiff -= (mins * SEC_PER_MIN);
+    const secs = secdiff % SEC_PER_MIN;
 
     const parts = [];
     days ? parts.push(`${days}d`) : '';
@@ -1694,7 +1698,7 @@ Such is the cost of progress.
             if (priordata.hasOwnProperty(field)) {
               if (field === 'date') {
                 // special case for date
-                delta_str = dateDiffDisplay(new Date(value), new Date(priordata[field]));
+                delta_str = dateDiffDisplay(new Date(priordata[field]), new Date(value));
               } else {
                 // rest of the fields are numeric, but they are saved as strings '27,057,508'
                 // convert to BigInts to do the math, then back
