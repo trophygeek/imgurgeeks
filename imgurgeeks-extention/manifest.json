@@ -1,7 +1,7 @@
 {
   "name": "ImgurGeeks Tools (Beta)",
   "short_name": "imgurtools",
-  "version": "0.0.5.9",
+  "version": "0.0.5.11",
   "manifest_version": 2,
   "description": "Beta: Enhances imgur.com with power user features.",
   "icons": {
@@ -33,7 +33,7 @@
       "src/settings_data.js",
       "src/background.js"
     ],
-    "persistent": true
+    "persistent": false
   },
   "web_accessible_resources": [
     "src/imgurgeeks_stats.css",
